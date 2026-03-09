@@ -55,7 +55,7 @@ const VIOLATIONS = [
 const FIRST_NAMES = ['António', 'Maria', 'João', 'Ana', 'José', 'Fernanda', 'Pedro', 'Lucia', 'Manuel', 'Catarina', 'Francisco', 'Rosa', 'Carlos', 'Helena', 'Paulo', 'Isabel', 'Miguel', 'Teresa', 'Luís', 'Sandra'];
 const LAST_NAMES = ['Silva', 'Santos', 'Fernandes', 'Pereira', 'Oliveira', 'Costa', 'Rodrigues', 'Martins', 'Almeida', 'Mendes', 'Gomes', 'Araújo', 'Ferreira', 'Carvalho', 'Nunes', 'Ribeiro', 'Dias', 'Moreira', 'Lopes', 'Teixeira'];
 
-function randomItem<T>(arr: T[]): T {
+function randomItem<T>(arr: readonly T[] | T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
@@ -202,7 +202,7 @@ export async function GET() {
 
     // Criar multas (200 multas)
     const fines: Fine[] = [];
-    const statuses = ['pending', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'contested', 'cancelled'] as const;
+    const statuses = ['pending', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'contested', 'cancelled'];
     
     for (let i = 0; i < 200; i++) {
       if (vehicles.length === 0 || drivers.length === 0) break;
@@ -210,7 +210,7 @@ export async function GET() {
       const vehicle = randomItem(vehicles);
       const driver = randomItem(drivers);
       const violation = randomItem(VIOLATIONS);
-      const status = randomItem(statuses);
+      const status = randomItem(statuses) as 'pending' | 'paid' | 'contested' | 'cancelled';
       
       const date = new Date();
       date.setDate(date.getDate() - Math.floor(Math.random() * 90));
