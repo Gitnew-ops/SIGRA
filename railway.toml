@@ -1,8 +1,8 @@
 [build]
-builder = "nixpacks"
+buildCommand = "bunx prisma generate && bun run build"
 
 [deploy]
-startCommand = "bunx prisma db push --accept-data-loss && next start -p ${PORT:-3000}"
+startCommand = "bunx prisma db push --accept-data-loss && bun run start"
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
