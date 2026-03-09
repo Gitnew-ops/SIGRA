@@ -39,10 +39,28 @@ Agent: Main Agent
 Task: Configure Railway Environment Variables
 
 Work Log:
-- Preparing instructions for user to configure:
-  1. DATABASE_URL reference
-  2. NEXTAUTH_SECRET
-  3. NEXTAUTH_URL
+- Created .env.example with all required variables
+- Created RAILWAY_SETUP.md with detailed setup instructions
+- Pushed documentation to GitHub
 
 Stage Summary:
-- Waiting for user to configure variables in Railway dashboard
+- Documentation complete
+- User needs to configure variables manually in Railway dashboard
+- Variables needed: DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: User Configure Railway Variables (Manual Step)
+
+Work Log:
+- Instructing user to configure Railway via dashboard
+
+Stage Summary:
+- PENDING: User must configure variables in Railway:
+  1. Add PostgreSQL database
+  2. Set DATABASE_URL = ${{Postgres.DATABASE_URL}}
+  3. Set NEXTAUTH_SECRET (click Generate)
+  4. Set NEXTAUTH_URL = https://sigra-production.up.railway.app
+  5. Redeploy
+  6. Access /api/seed to initialize database

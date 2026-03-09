@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ['...', 'openssl']
+nixPkgs = ['nodejs', 'bun', 'openssl', 'openssl-dev']
 
 [phases.install]
 cmds = ['bun install']
 
 [phases.build]
-cmds = ['bun run db:generate', 'bun run build']
+cmds = ['bunx prisma generate', 'bun run build']
 
 [start]
-cmd = 'bun run start'
+cmd = 'bunx prisma db push --accept-data-loss && bun run start'
