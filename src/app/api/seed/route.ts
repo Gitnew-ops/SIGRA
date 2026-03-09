@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import type { User, Vehicle, Driver, Fine } from '@prisma/client';
 
 // Províncias de Angola com municípios
 const PROVINCES_MUNICIPALITIES: Record<string, string[]> = {
@@ -101,14 +102,14 @@ export async function GET() {
     console.log('Dados antigos removidos');
 
     // Criar utilizadores
-    const users = [];
+    const users: User[] = [];
     
     try {
       const admin = await db.user.create({
         data: { email: 'admin@sigra.ao', name: 'Administrador SIGRA', role: 'admin', phone: '+244 923 456 789' }
       });
       users.push(admin);
-    } catch (e) {
+    } catch {
       console.log('Admin user already exists');
       const existing = await db.user.findUnique({ where: { email: 'admin@sigra.ao' } });
       if (existing) users.push(existing);
@@ -119,7 +120,7 @@ export async function GET() {
         data: { email: 'manager@luanda.ao', name: 'Gestor Luanda', role: 'manager', province: 'Luanda', phone: '+244 924 567 890' }
       });
       users.push(manager);
-    } catch (e) {
+    } catch {
       console.log('Manager user already exists');
     }
     
@@ -128,14 +129,14 @@ export async function GET() {
         data: { email: 'agent@dnvt.ao', name: 'Agente Paulo Dias', role: 'agent', province: 'Luanda', phone: '+244 925 678 901' }
       });
       users.push(agent);
-    } catch (e) {
+    } catch {
       console.log('Agent user already exists');
     }
 
     console.log(`Created ${users.length} users`);
 
     // Criar veículos (100 veículos para demonstração)
-    const vehicles = [];
+    const vehicles: Vehicle[] = [];
     const provinces = Object.keys(PROVINCES_MUNICIPALITIES);
     
     for (let i = 0; i < 100; i++) {
@@ -161,7 +162,7 @@ export async function GET() {
           }
         });
         vehicles.push(vehicle);
-      } catch (e) {
+      } catch {
         // Skip duplicate plates
       }
     }
@@ -169,7 +170,7 @@ export async function GET() {
     console.log(`Created ${vehicles.length} vehicles`);
 
     // Criar motoristas (100 motoristas)
-    const drivers = [];
+    const drivers: Driver[] = [];
     for (let i = 0; i < 100; i++) {
       const province = randomItem(provinces);
       const municipality = randomItem(PROVINCES_MUNICIPALITIES[province]);
@@ -192,7 +193,7 @@ export async function GET() {
           }
         });
         drivers.push(driver);
-      } catch (e) {
+      } catch {
         // Skip duplicate licenses
       }
     }
@@ -200,8 +201,8 @@ export async function GET() {
     console.log(`Created ${drivers.length} drivers`);
 
     // Criar multas (200 multas)
-    const fines = [];
-    const statuses = ['pending', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'contested', 'cancelled'];
+    const fines: Fine[] = [];
+    const statuses = ['pending', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'contested', 'cancelled'] as const;
     
     for (let i = 0; i < 200; i++) {
       if (vehicles.length === 0 || drivers.length === 0) break;
@@ -209,7 +210,7 @@ export async function GET() {
       const vehicle = randomItem(vehicles);
       const driver = randomItem(drivers);
       const violation = randomItem(VIOLATIONS);
-      const status = randomItem(statuses) as 'pending' | 'paid' | 'contested' | 'cancelled';
+      const status = randomItem(statuses);
       
       const date = new Date();
       date.setDate(date.getDate() - Math.floor(Math.random() * 90));
