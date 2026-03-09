@@ -1,0 +1,224 @@
+// SIGRA - Sistema Integrado de Gestão Rodoviária de Angola
+// Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --- UTILIZADORES ---
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  phone     String?
+  avatar    String?
+  role      String   @default("driver") // developer, admin, manager, agent, driver
+  province  String?
+  municipality String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  vehicles  Vehicle[]
+  finesAsDriver Fine[]  @relation("DriverFines")
+  finesAsAgent  Fine[]  @relation("AgentFines")
+  payments Payment[]
+  notifications Notification[]
+  notificationSettings NotificationSettings?
+}
+
+// --- VEÍCULOS ---
+
+model Vehicle {
+  id          String   @id @default(cuid())
+  plate       String   @unique
+  brand       String
+  model       String
+  year        Int
+  color       String
+  ownerId     String
+  ownerName   String
+  province    String
+  municipality String
+  status      String   @default("active") // active, suspended, stolen
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  owner       User     @relation(fields: [ownerId], references: [id])
+  documents   VehicleDocument[]
+  fines       Fine[]
+}
+
+model VehicleDocument {
+  id          String   @id @default(cuid())
+  vehicleId   String
+  type        String   // insurance, inspection, registration
+  number      String
+  issueDate   String
+  expiryDate  String
+  valid       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+}
+
+// --- MOTORISTAS (condutores) ---
+
+model Driver {
+  id              String   @id @default(cuid())
+  name            String
+  licenseNumber   String   @unique
+  licenseCategory String
+  licenseExpiry   String
+  points          Int      @default(0)
+  phone           String
+  email           String?
+  province        String
+  municipality    String
+  address         String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  fines           Fine[]
+}
+
+// --- MULTAS / INFRAÇÕES ---
+
+model Fine {
+  id                  String   @id @default(cuid())
+  vehicleId           String
+  vehiclePlate        String
+  driverId            String?
+  driverName          String?
+  driverUserId        String?
+  agentId             String?
+  agentName           String?
+  violationCode       String
+  violationDescription String
+  category            String
+  amount              Float
+  location            String
+  province            String
+  municipality        String
+  status              String   @default("pending") // pending, paid, contested, cancelled
+  points              Int      @default(0)
+  date                DateTime @default(now())
+  dueDate             DateTime
+  paymentDate         DateTime?
+  paymentReference    String?
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  // Relations
+  vehicle             Vehicle  @relation(fields: [vehicleId], references: [id])
+  driver              Driver?  @relation(fields: [driverId], references: [id])
+  driverUser          User?    @relation("DriverFines", fields: [driverUserId], references: [id])
+  agent               User?    @relation("AgentFines", fields: [agentId], references: [id])
+  payments            Payment[]
+}
+
+// --- PAGAMENTOS ---
+
+model Payment {
+  id          String   @id @default(cuid())
+  fineId      String
+  userId      String?
+  amount      Float
+  method      String   // multicaixa, transfer, cash
+  status      String   @default("pending") // pending, completed, failed
+  reference   String
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  fine        Fine     @relation(fields: [fineId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+// --- RELATÓRIOS ---
+
+model Report {
+  id          String   @id @default(cuid())
+  title       String
+  type        String   // financial, violations, safety, vehicles
+  period      String   // daily, weekly, monthly, yearly
+  province    String?
+  municipality String?
+  data        String   // JSON string
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// --- ESTATÍSTICAS POR MUNICÍPIO ---
+
+model MunicipalityStats {
+  id              String   @id @default(cuid())
+  name            String
+  province        String
+  totalFines      Int      @default(0)
+  totalAmount     Float    @default(0)
+  pendingFines    Int      @default(0)
+  paidFines       Int      @default(0)
+  contestedFines  Int      @default(0)
+  fatalAccidents  Int      @default(0)
+  seriousAccidents Int     @default(0)
+  minorAccidents  Int      @default(0)
+  propertyDamage  Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// --- NOTIFICAÇÕES ---
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String?
+  type        String   // fine_created, fine_paid, fine_contested, payment_reminder, license_expiry, document_expiry
+  title       String
+  message     String
+  data        String?  // JSON string com dados adicionais
+  channel     String   @default("in_app") // in_app, email, sms, whatsapp, push
+  status      String   @default("pending") // pending, sent, delivered, read, failed
+  sentAt      DateTime?
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// --- CONFIGURAÇÕES DE NOTIFICAÇÃO ---
+
+model NotificationSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  emailEnabled    Boolean  @default(true)
+  smsEnabled      Boolean  @default(false)
+  whatsappEnabled Boolean  @default(false)
+  pushEnabled     Boolean  @default(true)
+  fineCreated     Boolean  @default(true)
+  finePaid        Boolean  @default(true)
+  fineReminders   Boolean  @default(true)
+  licenseExpiry   Boolean  @default(true)
+  documentExpiry  Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
