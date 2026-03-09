@@ -75,12 +75,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         {/* Logo */}
         <div className="flex items-center h-16 px-4 border-b border-border">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center overflow-hidden">
-              <img 
-                src="/images/logo.bmp" 
-                alt="SIGRA" 
-                className="w-full h-full object-cover scale-150"
-              />
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+              S
             </div>
             {!sidebarCollapsed && (
               <div className="flex flex-col">
