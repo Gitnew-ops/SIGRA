@@ -1,4 +1,5 @@
 [build]
+builder = "railpack"
 buildCommand = "bunx prisma generate && bun run build"
 
 [deploy]
